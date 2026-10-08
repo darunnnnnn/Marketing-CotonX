@@ -1,0 +1,94 @@
+/* Cotonex design tokens — mirrors the ERP shell so the two apps read as one product. */
+
+:root {
+  /* Surfaces */
+  --c-app-bg: #f5f3f9;
+  --c-surface: #ffffff;
+  --c-surface-sunken: #faf9fc;
+  --c-surface-hover: #f3f1f8;
+  --c-rail-bg: #fbfafd;
+
+  /* Brand — the dark eggplant of the ERP's active nav tile */
+  --c-brand-900: #2e2740;
+  --c-brand-700: #453b5b;
+  --c-brand-500: #6d5ba6;
+  --c-brand-100: #ede9f7;
+  --c-brand-50: #f5f2fb;
+
+  /* Text */
+  --c-text: #1c1826;
+  --c-text-secondary: #6b6478;
+  --c-text-muted: #9a93a8;
+  --c-text-on-brand: #ffffff;
+
+  /* Lines */
+  --c-border: #eae7f0;
+  --c-border-strong: #ddd8e8;
+
+  /* Accents — paired tint/ink for stat tiles, badges and status dots */
+  --c-blue-tint: #e8f0fc;
+  --c-blue-ink: #3b74d6;
+  --c-violet-tint: #efebfa;
+  --c-violet-ink: #6b57b8;
+  --c-amber-tint: #fbf0dd;
+  --c-amber-ink: #b67a21;
+  --c-green-tint: #e6f4ec;
+  --c-green-ink: #2f9361;
+  --c-teal-tint: #e4f2f1;
+  --c-teal-ink: #2e8f8b;
+  --c-rose-tint: #fbe9ea;
+  --c-rose-ink: #cc5560;
+
+  /* Feedback */
+  --c-danger: #e5484d;
+  --c-danger-tint: #fdeceD;
+  --c-success: #2f9361;
+  --c-warning: #b67a21;
+
+  /* Hero band */
+  --c-hero: linear-gradient(110deg, #efebf8 0%, #f3edf6 48%, #faf2f3 100%);
+
+  /* Radius */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* Elevation — deliberately faint; the ERP leans on tint, not shadow */
+  --sh-sm: 0 1px 2px rgba(28, 24, 38, 0.04);
+  --sh-md: 0 1px 3px rgba(28, 24, 38, 0.05), 0 1px 2px rgba(28, 24, 38, 0.03);
+  --sh-lg: 0 8px 24px rgba(28, 24, 38, 0.08);
+  --sh-pop: 0 12px 32px rgba(28, 24, 38, 0.14);
+
+  /* Spacing scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* Type */
+  --f-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 28px;
+  --fs-3xl: 40px;
+
+  /* Layout */
+  --rail-w: 72px;
+  --sidebar-w: 260px;
+  --topbar-h: 64px;
+
+  /* Motion */
+  --t-fast: 120ms ease;
+  --t-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}

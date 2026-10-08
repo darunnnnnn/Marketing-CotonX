@@ -1,0 +1,19 @@
+.app-shell {
+  min-height: 100%;
+  padding-left: var(--rail-w);
+}
+
+.app-shell__main {
+  display: block;
+}
+
+.app-shell__content {
+  padding: var(--s-6) var(--s-8) var(--s-12);
+  max-width: 1600px;
+}
+
+@media (max-width: 640px) {
+  .app-shell__content {
+    padding: var(--s-4) var(--s-4) var(--s-12);
+  }
+}

@@ -1,0 +1,75 @@
+.stat-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  min-height: 190px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-md);
+  text-align: left;
+  width: 100%;
+  transition: transform var(--t-base), box-shadow var(--t-base);
+}
+
+/* The tinted wash bleeds in from the top-right, as in the ERP dashboard. */
+.stat-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, var(--tile-tint) 140%);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.stat-tile > * {
+  position: relative;
+  z-index: 1;
+}
+
+a.stat-tile:hover,
+button.stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-lg);
+}
+
+.stat-tile__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--tile-tint);
+  color: var(--tile-ink);
+}
+
+.stat-tile__label {
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+}
+
+.stat-tile__value {
+  font-size: var(--fs-3xl);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-top: auto;
+}
+
+.stat-tile__caption {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.stat-tile--blue { --tile-tint: var(--c-blue-tint); --tile-ink: var(--c-blue-ink); }
+.stat-tile--violet { --tile-tint: var(--c-violet-tint); --tile-ink: var(--c-violet-ink); }
+.stat-tile--amber { --tile-tint: var(--c-amber-tint); --tile-ink: var(--c-amber-ink); }
+.stat-tile--green { --tile-tint: var(--c-green-tint); --tile-ink: var(--c-green-ink); }
+.stat-tile--teal { --tile-tint: var(--c-teal-tint); --tile-ink: var(--c-teal-ink); }
+.stat-tile--rose { --tile-tint: var(--c-rose-tint); --tile-ink: var(--c-rose-ink); }

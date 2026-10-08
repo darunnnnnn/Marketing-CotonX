@@ -1,0 +1,254 @@
+/* Collapsed to an icon rail; expands as an overlay on hover so page content
+   never reflows — the behaviour of the ERP sidebar. */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  width: var(--rail-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--c-rail-bg);
+  border-right: 1px solid var(--c-border);
+  transition: width var(--t-base), box-shadow var(--t-base);
+  overflow: hidden;
+}
+
+.sidebar:hover,
+.sidebar:focus-within {
+  width: var(--sidebar-w);
+  box-shadow: var(--sh-lg);
+  background: var(--c-surface);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  padding: 0 var(--s-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.sidebar__mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--c-brand-700);
+  color: var(--c-text-on-brand);
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  letter-spacing: -0.02em;
+}
+
+.sidebar__wordmark {
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: var(--s-3) var(--s-3) var(--s-4);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar__link,
+.sidebar__group-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 10px var(--s-3);
+  margin-bottom: 2px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-md);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  text-align: left;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.sidebar__link:hover,
+.sidebar__group-toggle:hover {
+  background: var(--c-surface-hover);
+  color: var(--c-text);
+}
+
+.sidebar__link.is-active {
+  background: var(--c-brand-700);
+  color: var(--c-text-on-brand);
+}
+
+.sidebar__icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  min-width: 24px;
+}
+
+/* Label fades out with the rail but keeps its slot, so icons never jump. */
+.sidebar__label {
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.sidebar:hover .sidebar__label,
+.sidebar:focus-within .sidebar__label {
+  opacity: 1;
+}
+
+.sidebar__count {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-full);
+  background: var(--c-danger);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.sidebar:hover .sidebar__count,
+.sidebar:focus-within .sidebar__count {
+  opacity: 1;
+}
+
+/* While collapsed, a count becomes a dot pinned to the icon. */
+.sidebar__pip {
+  position: absolute;
+  top: 8px;
+  left: 30px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--c-danger);
+  transition: opacity var(--t-fast);
+}
+
+.sidebar:hover .sidebar__pip,
+.sidebar:focus-within .sidebar__pip {
+  opacity: 0;
+}
+
+.sidebar__chevron {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-base);
+}
+
+.sidebar:hover .sidebar__chevron,
+.sidebar:focus-within .sidebar__chevron {
+  opacity: 1;
+}
+
+.sidebar__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.sidebar__sub {
+  display: none;
+  padding-left: var(--s-6);
+}
+
+.sidebar:hover .sidebar__sub.is-open,
+.sidebar:focus-within .sidebar__sub.is-open {
+  display: block;
+}
+
+.sidebar__sub .sidebar__link {
+  font-size: var(--fs-sm);
+  padding: 8px var(--s-3);
+}
+
+.sidebar__sub .sidebar__link.is-active {
+  background: var(--c-brand-100);
+  color: var(--c-brand-900);
+  font-weight: 600;
+}
+
+.sidebar__footer {
+  border-top: 1px solid var(--c-border);
+  padding: var(--s-3);
+}
+
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-1);
+}
+
+.sidebar__avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: var(--c-brand-700);
+  color: var(--c-text-on-brand);
+  font-weight: 650;
+}
+
+.sidebar__user-meta {
+  min-width: 0;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.sidebar:hover .sidebar__user-meta,
+.sidebar:focus-within .sidebar__user-meta {
+  opacity: 1;
+}
+
+.sidebar__user-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__user-role {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+.sidebar__signout {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  margin-top: var(--s-2);
+  padding: 10px var(--s-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-md);
+  font-weight: 550;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.sidebar__signout:hover {
+  background: var(--c-surface-hover);
+  color: var(--c-text);
+}
