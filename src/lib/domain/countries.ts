@@ -47,26 +47,55 @@ export const COUNTRY_BY_CODE = new Map(COUNTRIES.map((country) => [country.code,
 
 export const countryName = (code: string) => COUNTRY_BY_CODE.get(code)?.name ?? code;
 
+/* Both of these run once per table row, so the formatters are cached too. */
+const clockFormatters = new Map<string, Intl.DateTimeFormat>();
+const stampFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function cached(
+  store: Map<string, Intl.DateTimeFormat>,
+  timeZone: string,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  let formatter = store.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-GB", { ...options, timeZone });
+    store.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 /** Current local time in a country, as HH:MM. */
 export function localTime(code: string, now = new Date()): string {
   const profile = COUNTRY_BY_CODE.get(code);
   if (!profile) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
+  return cached(clockFormatters, profile.timeZone, {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: profile.timeZone,
     hour12: false,
   }).format(now);
 }
 
+/* Constructing an Intl formatter is expensive and nextSendSlot can step
+   through hundreds of hours, so keep one per zone. */
+const partsFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function partsFormatter(timeZone: string): Intl.DateTimeFormat {
+  let formatter = partsFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      weekday: "short",
+      hour12: false,
+    });
+    partsFormatters.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 /** The country's wall-clock hour and weekday right now. */
 function localParts(profile: CountryProfile, at: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: profile.timeZone,
-    hour: "numeric",
-    weekday: "short",
-    hour12: false,
-  }).formatToParts(at);
+  const parts = partsFormatter(profile.timeZone).formatToParts(at);
   const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
   const weekdayName = parts.find((part) => part.type === "weekday")?.value ?? "Mon";
   const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekdayName);
@@ -101,13 +130,14 @@ export function nextSendSlot(code: string, from = new Date()): Date {
 
 export function formatInZone(code: string, at: Date): string {
   const profile = COUNTRY_BY_CODE.get(code);
-  return new Intl.DateTimeFormat("en-GB", {
+  /* An unknown country falls back to the viewer's own zone. */
+  return cached(stampFormatters, profile?.timeZone ?? "local", {
     weekday: "short",
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: profile?.timeZone,
+    ...(profile ? {} : { timeZone: undefined }),
   }).format(at);
 }
