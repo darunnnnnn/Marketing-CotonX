@@ -30,3 +30,7 @@ dist-ssr
 
 # Service account keys and other secrets
 secrets/
+
+# Supabase local
+supabase/.temp
+supabase/.branches
