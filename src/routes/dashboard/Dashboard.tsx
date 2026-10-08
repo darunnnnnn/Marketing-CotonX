@@ -1,28 +1,25 @@
-import { Building2, CheckCircle2, Globe2, Mail, MessageSquareReply, Megaphone } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
+import {
+  Building2,
+  CheckCircle2,
+  Globe2,
+  Mail,
+  Megaphone,
+  MessageSquareReply,
+} from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { StatTile } from "../../components/ui/StatTile";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Badge } from "../../components/ui/Badge";
+import { StatusBadge } from "../../components/ui/StatusBadge";
+import { repo } from "../../lib/domain/repository";
+import type { CountrySegment } from "../../lib/domain/repository";
+import { isInSendWindow, localTime } from "../../lib/domain/countries";
+import { HUMAN_OWNED } from "../../lib/domain/types";
+import type { Campaign, Company, Contact, Handoff } from "../../lib/domain/types";
 import "./dashboard.css";
-
-/* Phase 0 shell: figures are zeroed placeholders. They bind to Supabase in Phase 1. */
-const stats = [
-  { icon: Building2, label: "Companies", value: 0, caption: "in the database", tone: "blue" as const, to: "/buyers/companies" },
-  { icon: Mail, label: "Contacts", value: 0, caption: "with an email", tone: "violet" as const, to: "/buyers/contacts" },
-  { icon: Globe2, label: "Countries", value: 0, caption: "segmented", tone: "teal" as const, to: "/segments" },
-  { icon: CheckCircle2, label: "Verified", value: 0, caption: "awaiting review", tone: "green" as const, to: "/buyers/review" },
-  { icon: Megaphone, label: "Campaigns", value: 0, caption: "running now", tone: "amber" as const, to: "/campaigns" },
-  { icon: MessageSquareReply, label: "Replies", value: 0, caption: "to hand off", tone: "rose" as const, to: "/activity" },
-];
-
-const setup = [
-  { label: "Project scaffold + design system", hint: "React 19, Vite 8, Supabase client", done: true },
-  { label: "Buyer database schema", hint: "Phase 1 — companies, contacts, sources, status", done: false },
-  { label: "Gmail ingestion", hint: "Phase 2 — 10 mailboxes, 3 years of history", done: false },
-  { label: "Country segmentation + review UI", hint: "Phase 3", done: false },
-  { label: "Apollo and other sources", hint: "Phase 4", done: false },
-  { label: "Campaign engine", hint: "Phase 5 — sequences, approvals, timezone scheduling", done: false },
-];
+import "../../styles/table.css";
 
 function greeting(hour: number): string {
   if (hour < 12) return "Good morning";
@@ -31,7 +28,30 @@ function greeting(hour: number): string {
 }
 
 export function Dashboard() {
-  const now = new Date();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [handoffs, setHandoffs] = useState<Handoff[]>([]);
+  const [segments, setSegments] = useState<CountrySegment[]>([]);
+  const [now] = useState(() => new Date());
+
+  useEffect(() => {
+    void repo.listContacts().then(setContacts);
+    void repo.listCompanies().then(setCompanies);
+    void repo.listCampaigns().then(setCampaigns);
+    void repo.listHandoffs().then(setHandoffs);
+    void repo.countrySegments().then(setSegments);
+  }, []);
+
+  const companyById = useMemo(() => new Map(companies.map((item) => [item.id, item])), [companies]);
+
+  const needsReview = contacts.filter((contact) => !contact.verified);
+  const openHandoffs = handoffs.filter((handoff) => !handoff.resolved);
+  const running = campaigns.filter((campaign) => campaign.status === "running");
+  const pending = campaigns.filter((campaign) => campaign.status === "pending_approval");
+  const replied = contacts.filter((contact) => HUMAN_OWNED.includes(contact.status));
+  const openMarkets = segments.filter((segment) => isInSendWindow(segment.code, now));
+
   const dateLabel = now
     .toLocaleDateString("en-GB", { weekday: "long", month: "long", day: "numeric" })
     .toUpperCase();
@@ -49,45 +69,124 @@ export function Dashboard() {
       </section>
 
       <div className="stat-grid">
-        {stats.map((stat) => (
-          <StatTile key={stat.label} {...stat} />
-        ))}
+        <StatTile icon={Building2} label="Companies" value={companies.length} caption="in the database" tone="blue" to="/buyers/companies" />
+        <StatTile icon={Mail} label="Contacts" value={contacts.length} caption="with an email" tone="violet" to="/buyers/contacts" />
+        <StatTile icon={Globe2} label="Countries" value={segments.length} caption="segmented" tone="teal" to="/segments" />
+        <StatTile icon={CheckCircle2} label="Needs review" value={needsReview.length} caption="unverified" tone="amber" to="/buyers/review" />
+        <StatTile icon={Megaphone} label="Campaigns" value={running.length} caption="running now" tone="green" to="/campaigns" />
+        <StatTile icon={MessageSquareReply} label="Replies" value={openHandoffs.length} caption="to hand off" tone="rose" to="/activity" />
       </div>
 
       <div className="panel-grid">
-        <Card title="Needs Attention" action={<button className="card__action">All contacts</button>} flushBody>
-          <EmptyState
-            icon={CheckCircle2}
-            title="Nothing to review yet"
-            hint="Items appear here once Gmail ingestion starts producing buyer records."
-          />
+        <Card
+          title="Waiting on the team"
+          action={<Link to="/activity" className="card__action">Activity</Link>}
+          flushBody
+        >
+          {openHandoffs.length === 0 ? (
+            <EmptyState icon={MessageSquareReply} title="No buyers waiting" />
+          ) : (
+            <div className="row-list">
+              {openHandoffs.slice(0, 5).map((handoff) => {
+                const contact = contacts.find((item) => item.id === handoff.contactId);
+                const company = contact ? companyById.get(contact.companyId) : undefined;
+                const days = Math.round((now.getTime() - new Date(handoff.at).getTime()) / 86_400_000);
+                return (
+                  <div className="row" key={handoff.id}>
+                    <div className="row__main">
+                      <div className="row__title">{contact?.name ?? contact?.email}</div>
+                      <div className="row__meta">
+                        {company?.name} — {handoff.reason}
+                      </div>
+                    </div>
+                    <Badge tone={days > 2 ? "rose" : "amber"}>{days}d</Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
-        <Card title="Recent Replies" action={<button className="card__action">Activity</button>} flushBody>
-          <EmptyState
-            icon={MessageSquareReply}
-            title="No replies yet"
-            hint="When a buyer replies, their campaign stops and they are handed to the sales team."
-          />
+        <Card
+          title="Needs review"
+          action={<Link to="/buyers/review" className="card__action">Review queue</Link>}
+          flushBody
+        >
+          {needsReview.length === 0 ? (
+            <EmptyState icon={CheckCircle2} title="Everything is verified" />
+          ) : (
+            <div className="row-list">
+              {needsReview.slice(0, 5).map((contact) => {
+                const company = companyById.get(contact.companyId);
+                return (
+                  <div className="row" key={contact.id}>
+                    <div className="row__main">
+                      <div className="row__title">{contact.name ?? contact.email}</div>
+                      <div className="row__meta">
+                        {company?.name} · {company?.countryCode}
+                      </div>
+                    </div>
+                    <StatusBadge status={contact.status} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
-        <Card title="Build Progress" action={<Badge tone="violet">Phase 0</Badge>}>
-          <ul className="setup-list">
-            {setup.map((item, index) => (
-              <li
-                key={item.label}
-                className={["setup-item", item.done && "setup-item--done"].filter(Boolean).join(" ")}
-              >
-                <span className="setup-item__step">{item.done ? "✓" : index + 1}</span>
-                <div>
-                  <div className="setup-item__label">{item.label}</div>
-                  <div className="setup-item__hint">{item.hint}</div>
+        <Card
+          title="Markets open now"
+          action={<Link to="/segments" className="card__action">Segments</Link>}
+          flushBody
+        >
+          {openMarkets.length === 0 ? (
+            <EmptyState icon={Globe2} title="All markets are outside their send window" hint="Queued messages are held until local working hours." />
+          ) : (
+            <div className="row-list">
+              {openMarkets.slice(0, 6).map((segment) => (
+                <div className="row" key={segment.code}>
+                  <span className="flag__code">{segment.code}</span>
+                  <div className="row__main">
+                    <div className="row__title">{segment.name}</div>
+                    <div className="row__meta">{segment.contactable} contactable</div>
+                  </div>
+                  <Badge tone="green" dot>
+                    {localTime(segment.code, now)}
+                  </Badge>
                 </div>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
+
+      {pending.length > 0 && (
+        <Card
+          title="Awaiting approval"
+          action={<Link to="/campaigns/approvals" className="card__action">Approvals</Link>}
+          flushBody
+        >
+          <div className="row-list">
+            {pending.map((campaign) => (
+              <div className="row" key={campaign.id}>
+                <div className="row__main">
+                  <Link to={`/campaigns/${campaign.id}`} className="row__title">
+                    {campaign.name}
+                  </Link>
+                  <div className="row__meta">
+                    {campaign.countryCodes.join(", ")} · {campaign.steps.length} steps
+                  </div>
+                </div>
+                <Badge tone="amber">Pending</Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <p className="table__sub" style={{ textAlign: "center" }}>
+        {replied.length} buyers are owned by the sales team and excluded from every campaign.
+      </p>
     </div>
   );
 }

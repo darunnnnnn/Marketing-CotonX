@@ -3,11 +3,13 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
+  Database,
   Globe2,
   LayoutDashboard,
   Mail,
   Megaphone,
-  Database,
+  Radio,
+  Search,
   Settings,
   Users,
   Workflow,
@@ -31,16 +33,16 @@ export type NavItem = NavLeaf | NavGroup;
 
 export const isGroup = (item: NavItem): item is NavGroup => "children" in item;
 
-/* Counts are placeholders until the Supabase schema lands in Phase 1. */
 export const navigation: NavItem[] = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
   {
     label: "Buyer Database",
     icon: Database,
     children: [
+      { label: "Lookup", to: "/buyers/lookup", icon: Search },
       { label: "Companies", to: "/buyers/companies", icon: Building2 },
       { label: "Contacts", to: "/buyers/contacts", icon: Users },
-      { label: "Review Queue", to: "/buyers/review", icon: CheckCircle2, count: 0 },
+      { label: "Review Queue", to: "/buyers/review", icon: CheckCircle2 },
     ],
   },
   { label: "Segments", to: "/segments", icon: Globe2 },
@@ -59,10 +61,11 @@ export const navigation: NavItem[] = [
     children: [
       { label: "All Campaigns", to: "/campaigns", icon: Megaphone },
       { label: "Templates", to: "/campaigns/templates", icon: Mail },
-      { label: "Approvals", to: "/campaigns/approvals", icon: CheckCircle2, count: 0 },
+      { label: "Approvals", to: "/campaigns/approvals", icon: CheckCircle2 },
     ],
   },
   { label: "Schedule", to: "/schedule", icon: CalendarClock },
   { label: "Activity", to: "/activity", icon: BarChart3 },
+  { label: "Channels", to: "/channels", icon: Radio },
   { label: "Settings", to: "/settings", icon: Settings },
 ];
