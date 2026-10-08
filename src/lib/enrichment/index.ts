@@ -1,4 +1,4 @@
-import { COMPANY_SUFFIXES, FREE_PROVIDERS, ROLE_PREFIXES, SLD_PREFIXES, TLD_COUNTRIES } from "./data";
+import { COMPANY_SUFFIXES, FREE_PROVIDERS, ROLE_PREFIXES, TLD_COUNTRIES } from "./data";
 import type { BuyerRecord, Fact, LookupResult } from "./types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
@@ -43,11 +43,9 @@ function countryFromDomain(domain: string) {
   const labels = domain.split(".");
   const tld = labels[labels.length - 1];
   const direct = TLD_COUNTRIES[tld];
-  if (direct) {
-    /* co.uk, com.au: the ccTLD is still the last label, so this already covers them. */
-    const isSld = labels.length > 2 && SLD_PREFIXES.has(labels[labels.length - 2]);
-    return { ...direct, confidence: isSld ? ("high" as const) : ("high" as const) };
-  }
+  /* co.uk and com.au need no special case: the ccTLD is still the last label.
+     SLD_PREFIXES exists so a future caller can tell weber.co.uk from weber.uk. */
+  if (direct) return { ...direct, confidence: "high" as const };
   return undefined;
 }
 

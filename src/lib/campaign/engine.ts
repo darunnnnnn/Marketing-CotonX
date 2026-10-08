@@ -13,6 +13,7 @@ import type {
   Campaign,
   Company,
   Contact,
+  Handoff,
   Id,
   OutreachEvent,
   QueueItem,
@@ -108,7 +109,13 @@ export function evaluate(
 
   const step = ordered[position];
 
-  if (position > 0 && contact.lastTouchAt) {
+  /* Mid-sequence, so a delay applies. A missing lastTouchAt means we cannot
+     prove the delay has elapsed — hold rather than risk sending a follow-up
+     immediately after the step before it. */
+  if (position > 0 && step.delayDays > 0) {
+    if (!contact.lastTouchAt) {
+      return { eligible: false, contact, reason: "waiting_for_delay" };
+    }
     const due = new Date(contact.lastTouchAt).getTime() + step.delayDays * dayMs;
     if (due > now.getTime()) {
       return { eligible: false, contact, reason: "waiting_for_delay" };
@@ -197,18 +204,26 @@ export function planToQueue(plan: Plan): QueueItem[] {
  * still stop, because a duplicate handoff is cheap and an automated email on
  * top of a live sales conversation is not.
  */
-export function applyReply(contact: Contact, at = new Date()): {
+export function applyReply(
+  contact: Contact,
+  at = new Date(),
+  options: { campaignId?: Id; summary?: string } = {},
+): {
   contact: Contact;
   events: Omit<OutreachEvent, "id">[];
   suppression: Omit<Suppression, "id">;
+  handoff: Omit<Handoff, "id">;
 } {
   const when = at.toISOString();
+  const summary = options.summary?.trim() || "Buyer replied - needs a human response";
+
   return {
     contact: { ...contact, status: "buyer_replied", lastReplyAt: when },
     events: [
-      { contactId: contact.id, channel: "email", type: "replied", at: when },
+      { contactId: contact.id, campaignId: options.campaignId, channel: "email", type: "replied", at: when, detail: options.summary },
       {
         contactId: contact.id,
+        campaignId: options.campaignId,
         channel: "email",
         type: "stopped",
         at: when,
@@ -216,6 +231,9 @@ export function applyReply(contact: Contact, at = new Date()): {
       },
     ],
     suppression: { value: contact.email, scope: "email", reason: "human_owned", at: when },
+    /* Stopping the sequence is only half the rule: a person has to be told,
+       or the buyer is simply dropped instead of handed over. */
+    handoff: { contactId: contact.id, campaignId: options.campaignId, reason: summary, at: when, resolved: false },
   };
 }
 

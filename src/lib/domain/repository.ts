@@ -57,6 +57,7 @@ export interface Repository {
   listEvents(): Promise<OutreachEvent[]>;
   addEvent(event: OutreachEvent): Promise<void>;
   listHandoffs(): Promise<Handoff[]>;
+  addHandoff(handoff: Handoff): Promise<void>;
   resolveHandoff(id: Id): Promise<void>;
   listSuppressions(): Promise<Suppression[]>;
   addSuppression(suppression: Suppression): Promise<void>;
@@ -170,6 +171,15 @@ export const memoryRepo: Repository = {
   },
 
   listHandoffs: () => ok([...db.handoffs].sort((a, b) => b.at.localeCompare(a.at))),
+
+  addHandoff: (handoff) => {
+    /* One open handoff per contact — a second reply should not queue a
+       duplicate task for the sales team. */
+    const existing = db.handoffs.find((item) => item.contactId === handoff.contactId && !item.resolved);
+    if (existing) existing.reason = handoff.reason;
+    else db.handoffs.push(handoff);
+    return ok(undefined);
+  },
 
   resolveHandoff: (id) => {
     const handoff = db.handoffs.find((item) => item.id === id);

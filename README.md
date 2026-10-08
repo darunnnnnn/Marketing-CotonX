@@ -27,6 +27,7 @@ npm run dev
 | `npm run build` | Typecheck + production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc` only |
+| `npm test` | Vitest (84 tests) |
 
 ## Layout
 
@@ -48,11 +49,11 @@ look as that changes.
 | Phase | Scope | State |
 | --- | --- | --- |
 | 0 | Scaffold, design system, app shell, routing | done |
-| 1 | Supabase schema, auth, RBAC | deferred |
+| 1 | Supabase schema, auth, RBAC | deferred - now the bottleneck |
 | 2 | Gmail ingestion | blocked (see below) |
 | 3 | Country segmentation, dedup/merge, verification UI | done |
 | 4 | Apollo and other acquisition sources | done, key pending |
-| 5 | Campaign engine, approvals, timezone scheduling | done |
+| 5 | Campaign engine, builder, approvals, timezone scheduling | done |
 | 6 | Tracking, reply-stop, human handoff | done |
 | 8 | WhatsApp / SMS | modelled |
 | 9 | AI voice agent, warm contacts only | modelled |
@@ -120,3 +121,44 @@ Run `npm run dev` and everything below is clickable against seed data:
   weeks of calendar time regardless of code.
 - Google Cloud project with the Gmail API enabled, OAuth consent screen
   configured for the Cotonex workspace.
+
+## Testing
+
+`npm test` runs 84 tests over the logic that decides who gets contacted:
+
+- **engine** - eligibility, the reply-stop rule across all three human-owned
+  statuses, sequence resume, step delays, domain suppression, merge-field
+  rendering, queue construction.
+- **countries** - `nextSendSlot` is checked for all 23 countries at 5-hour
+  intervals across a full week: every result must land inside that country's
+  own working hours and local week, never in the past, and must survive the
+  March daylight-saving transition.
+- **enrichment** - country derivation, role detection in six languages, name
+  parsing, and the rule that a personal provider reveals nothing about a
+  company.
+- **repository** - filter composition, case-insensitive deduplication, segment
+  arithmetic, and that no internal array is handed to a caller.
+- **safeUrl** - rejection of `javascript:` and `data:` URLs in imported data.
+
+Two real defects were found this way and fixed, not papered over:
+
+1. A mid-sequence contact with no `lastTouchAt` skipped the delay check and
+   would have been sent a follow-up immediately after the step before it.
+2. `applyReply` stopped the sequence but never created a handoff, so a buyer
+   who replied was dropped rather than passed to a person.
+
+## Security
+
+- `npm audit` is clean. A first attempt at `vitest@^3` pulled a critical
+  prototype-pollution advisory; the pin is `^5`.
+- Imported company websites are sanitised by `safeUrl` before being used as an
+  `href`, so a `javascript:` URL in a CSV cannot become a script vector.
+- External links carry `rel="noreferrer noopener"`.
+- No `dangerouslySetInnerHTML` anywhere; all rendering goes through React's
+  escaping.
+- Secrets are never read in the browser. The Apollo key lives in Edge Function
+  secrets and the client calls the function, never Apollo directly.
+- `secrets/` and `.env.local` are gitignored.
+
+**Not yet addressed: there is no authentication.** Anyone who can reach the URL
+sees every buyer record. That lands with Phase 1.

@@ -4,6 +4,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { repo } from "../../lib/domain/repository";
+import { safeUrl } from "../../lib/safeUrl";
 import type { Company, Contact } from "../../lib/domain/types";
 import "../../styles/table.css";
 
@@ -87,14 +88,16 @@ export function Companies() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((company) => (
+                {rows.map((company) => {
+                  const href = safeUrl(company.website);
+                  return (
                   <tr key={company.id}>
                     <td>
                       <div className="table__primary">{company.name}</div>
                       <div className="table__sub">
-                        {company.website ? (
+                        {href ? (
                           <a
-                            href={company.website}
+                            href={href}
                             target="_blank"
                             rel="noreferrer noopener"
                             style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
@@ -133,7 +136,8 @@ export function Companies() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

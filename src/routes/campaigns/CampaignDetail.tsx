@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { AlertTriangle, ArrowRight, Clock, Send, ShieldCheck } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -17,6 +17,7 @@ import "../../styles/table.css";
 
 export function CampaignDetail() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -39,6 +40,24 @@ export function CampaignDetail() {
 
   const stats = plan ? summarise(plan) : null;
   const blockers = sendingBlockers();
+
+  const submit = async () => {
+    if (!campaign) return;
+    await repo.saveCampaign({ ...campaign, status: "pending_approval" });
+    navigate("/campaigns/approvals");
+  };
+
+  /* Only an approved campaign can start, and only once sending is unblocked. */
+  const start = async () => {
+    if (!campaign || blockers.length > 0) return;
+    const updated: Campaign = {
+      ...campaign,
+      status: "running",
+      scheduledFrom: new Date().toISOString(),
+    };
+    await repo.saveCampaign(updated);
+    setCampaign(updated);
+  };
 
   if (!campaign) {
     return (
@@ -63,11 +82,21 @@ export function CampaignDetail() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "var(--s-2)" }}>
-          <Button variant="secondary">Edit</Button>
-          <Button variant="primary" disabled>
-            <Send size={16} strokeWidth={2} />
-            Schedule send
-          </Button>
+          <Link to={`/campaigns/${campaign.id}/edit`} className="btn btn--secondary">
+            Edit
+          </Link>
+          {campaign.status === "draft" && (
+            <Button variant="primary" onClick={() => void submit()}>
+              <Send size={16} strokeWidth={2} />
+              Submit for approval
+            </Button>
+          )}
+          {campaign.status === "approved" && (
+            <Button variant="primary" onClick={() => void start()} disabled={blockers.length > 0}>
+              <Send size={16} strokeWidth={2} />
+              Start campaign
+            </Button>
+          )}
         </div>
       </div>
 

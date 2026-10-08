@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Megaphone } from "lucide-react";
+import { Megaphone, Plus } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -39,6 +39,13 @@ export function Campaigns() {
 
   return (
     <div className="page">
+      <div className="row-between">
+        <Link to="/campaigns/new" className="btn btn--primary">
+          <Plus size={16} strokeWidth={2} />
+          New campaign
+        </Link>
+      </div>
+
       <p className="page__lead">
         A campaign targets one or more countries and runs a sequence of steps.
         Contacts resume where they left off rather than restarting at the

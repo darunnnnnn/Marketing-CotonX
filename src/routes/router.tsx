@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router";
-import { Settings as SettingsIcon } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Dashboard } from "./dashboard/Dashboard";
 import { Lookup } from "./buyers/Lookup";
@@ -11,13 +10,14 @@ import { EmailSync } from "./sources/EmailSync";
 import { Apollo } from "./sources/Apollo";
 import { Imports } from "./sources/Imports";
 import { Campaigns } from "./campaigns/Campaigns";
+import { CampaignEditor } from "./campaigns/CampaignEditor";
 import { CampaignDetail } from "./campaigns/CampaignDetail";
 import { Templates } from "./campaigns/Templates";
 import { Approvals } from "./campaigns/Approvals";
 import { Schedule } from "./schedule/Schedule";
 import { Activity } from "./activity/Activity";
 import { Channels } from "./channels/Channels";
-import { Placeholder } from "./Placeholder";
+import { Settings } from "./settings/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -38,15 +38,17 @@ export const router = createBrowserRouter([
       { path: "sources/imports", element: <Imports /> },
 
       { path: "campaigns", element: <Campaigns /> },
+      { path: "campaigns/new", element: <CampaignEditor /> },
       { path: "campaigns/templates", element: <Templates /> },
       { path: "campaigns/approvals", element: <Approvals /> },
       { path: "campaigns/:id", element: <CampaignDetail /> },
+      { path: "campaigns/:id/edit", element: <CampaignEditor /> },
 
       { path: "schedule", element: <Schedule /> },
       { path: "activity", element: <Activity /> },
       { path: "channels", element: <Channels /> },
 
-      { path: "settings", element: <Placeholder icon={SettingsIcon} title="Settings" phase="Phase 1" /> },
+      { path: "settings", element: <Settings /> },
     ],
   },
 ]);

@@ -77,10 +77,10 @@ export function Activity() {
   const openHandoffs = handoffs.filter((handoff) => !handoff.resolved);
 
   /* Lets the reply-stop rule be demonstrated without a live inbox. */
-  const simulateReply = async (contactId: string) => {
+  const simulateReply = async (contactId: string, campaignId?: string) => {
     const contact = contactById.get(contactId);
     if (!contact) return;
-    const outcome = applyReply(contact);
+    const outcome = applyReply(contact, new Date(), { campaignId });
     await repo.updateContact(contact.id, {
       status: outcome.contact.status,
       lastReplyAt: outcome.contact.lastReplyAt,
@@ -89,6 +89,7 @@ export function Activity() {
       await repo.addEvent({ ...event, id: nextId(`sim-${event.type}`) });
     }
     await repo.addSuppression({ ...outcome.suppression, id: nextId("sup") });
+    await repo.addHandoff({ ...outcome.handoff, id: nextId("handoff") });
     load();
   };
 
@@ -231,7 +232,7 @@ export function Activity() {
                       <td>
                         <div className="table__actions">
                           {event.type === "sent" && contact && (
-                            <Button variant="ghost" onClick={() => void simulateReply(contact.id)}>
+                            <Button variant="ghost" onClick={() => void simulateReply(contact.id, event.campaignId)}>
                               Simulate reply
                             </Button>
                           )}
