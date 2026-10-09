@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { classifyThread, deriveStatus, makeContext, summarise } from "./classify";
-import { parseSignature } from "./signature";
-import type { ParsedMessage, ParsedThread } from "./types";
+import { classifyThread, deriveStatus, makeContext, summarise } from "./classify.ts";
+import { parseSignature } from "./signature.ts";
+import type { ParsedMessage, ParsedThread } from "./types.ts";
 
 const context = makeContext(["sales@cotonex.com", "merch1@cotonex.com", "export@cotonex.com"]);
 const NOW = new Date("2026-06-01T12:00:00.000Z");

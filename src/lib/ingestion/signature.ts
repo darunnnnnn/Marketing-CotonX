@@ -8,8 +8,8 @@
  * flows into campaign personalisation and the review queue trusts it.
  */
 
-import { BUYING_TITLES } from "./lexicon";
-import type { Extracted } from "./types";
+import { BUYING_TITLES } from "./lexicon.ts";
+import type { Extracted } from "./types.ts";
 
 /* Enough digits to be a real number, loose enough for European formats. */
 const PHONE_RE = /(?:\+|00)\d[\d\s().-]{7,20}\d|\b0\d[\d\s().-]{7,18}\d\b/g;

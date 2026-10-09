@@ -1,4 +1,4 @@
-import type { SourceDescriptor, SourceId } from "./types";
+import type { SourceDescriptor, SourceId } from "./types.ts";
 
 /**
  * Every way a buyer fact can enter the database. The lookup page renders this

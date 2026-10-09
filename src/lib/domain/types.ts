@@ -6,7 +6,7 @@
  * so WhatsApp and voice reuse the engine instead of forking it.
  */
 
-import type { SourceId } from "../enrichment/types";
+import type { SourceId } from "../enrichment/types.ts";
 
 export type Id = string;
 

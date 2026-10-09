@@ -1,5 +1,5 @@
-import { COMPANY_SUFFIXES, FREE_PROVIDERS, ROLE_PREFIXES, TLD_COUNTRIES } from "./data";
-import type { BuyerRecord, Fact, LookupResult } from "./types";
+import { COMPANY_SUFFIXES, FREE_PROVIDERS, ROLE_PREFIXES, TLD_COUNTRIES } from "./data.ts";
+import type { BuyerRecord, Fact, LookupResult } from "./types.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 

@@ -11,15 +11,15 @@
  * explained and corrected rather than argued with.
  */
 
-import { FREE_PROVIDERS } from "../enrichment/data";
+import { FREE_PROVIDERS } from "../enrichment/data.ts";
 import {
   ALL_TERMS,
   AUTOMATED_LOCAL_PARTS,
   DEFAULT_VENDOR_DOMAINS,
   MARKETING_PLATFORMS,
-} from "./lexicon";
-import { isBuyingTitle, parseSignature } from "./signature";
-import { EXCLUSION_LABELS, THRESHOLDS } from "./types";
+} from "./lexicon.ts";
+import { isBuyingTitle, parseSignature } from "./signature.ts";
+import { EXCLUSION_LABELS, THRESHOLDS } from "./types.ts";
 import type {
   Classification,
   Extracted,
@@ -29,8 +29,8 @@ import type {
   ParsedThread,
   Signal,
   Verdict,
-} from "./types";
-import type { ContactStatus } from "../domain/types";
+} from "./types.ts";
+import type { ContactStatus } from "../domain/types.ts";
 
 const DAY = 86_400_000;
 

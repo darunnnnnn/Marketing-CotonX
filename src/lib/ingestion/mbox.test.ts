@@ -7,8 +7,8 @@ import {
   splitHeaders,
   splitMbox,
   stripQuoted,
-} from "./mbox";
-import { classifyAll, makeContext } from "./classify";
+} from "./mbox.ts";
+import { classifyAll, makeContext } from "./classify.ts";
 
 const SAMPLE = `From 1234567890 Mon Apr 06 09:12:03 2026
 Message-ID: <a1@weber.de>

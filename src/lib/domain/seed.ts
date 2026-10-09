@@ -13,7 +13,7 @@ import type {
   OutreachEvent,
   Suppression,
   Template,
-} from "./types";
+} from "./types.ts";
 
 const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
 

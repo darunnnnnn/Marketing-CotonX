@@ -6,7 +6,7 @@
  * pure functions, testable without a mailbox.
  */
 
-import type { ContactStatus } from "../domain/types";
+import type { ContactStatus } from "../domain/types.ts";
 
 export type ParsedAddress = {
   name?: string;

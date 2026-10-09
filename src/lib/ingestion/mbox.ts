@@ -9,7 +9,8 @@
  * plain-text body and the headers the exclusion layer reads.
  */
 
-import type { ParsedAddress, ParsedMessage, ParsedThread } from "./types";
+import type { ParsedAddress, ParsedMessage, ParsedThread } from "./types.ts";
+import { htmlToText } from "./html.ts";
 
 /* A line beginning "From " at the start of a message is the mbox separator. */
 const SEPARATOR = /^From \S+.*\d{4}$/;
@@ -188,24 +189,6 @@ function extractPlainText(headers: Record<string, string>, body: string): string
   }
 
   return html;
-}
-
-function htmlToText(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
 }
 
 export function parseMessage(raw: string, index: number): ParsedMessage | null {

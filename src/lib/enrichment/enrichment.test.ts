@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lookupByEmail } from "./index";
+import { lookupByEmail } from "./index.ts";
 
 describe("lookupByEmail", () => {
   it("rejects malformed addresses", () => {

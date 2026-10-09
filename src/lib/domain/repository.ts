@@ -6,8 +6,8 @@
  * async for that reason, even though nothing here actually awaits.
  */
 
-import * as seed from "./seed";
-import { HUMAN_OWNED } from "./types";
+import * as seed from "./seed.ts";
+import { HUMAN_OWNED } from "./types.ts";
 import type {
   Campaign,
   Company,
@@ -19,7 +19,7 @@ import type {
   OutreachEvent,
   Suppression,
   Template,
-} from "./types";
+} from "./types.ts";
 
 export type ContactFilter = {
   search?: string;

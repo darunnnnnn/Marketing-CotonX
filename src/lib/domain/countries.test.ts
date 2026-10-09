@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNTRIES, COUNTRY_BY_CODE, isInSendWindow, localTime, nextSendSlot } from "./countries";
+import { COUNTRIES, COUNTRY_BY_CODE, isInSendWindow, localTime, nextSendSlot } from "./countries.ts";
 
 const hourIn = (zone: string, at: Date) =>
   Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: zone }).format(at));

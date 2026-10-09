@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { memoryRepo as repo } from "./repository";
-import { HUMAN_OWNED } from "./types";
-import type { Company, Contact } from "./types";
+import { memoryRepo as repo } from "./repository.ts";
+import { HUMAN_OWNED } from "./types.ts";
+import type { Company, Contact } from "./types.ts";
 
 const now = "2026-01-01T00:00:00.000Z";
 
