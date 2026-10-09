@@ -6,6 +6,7 @@ import {
   Database,
   Globe2,
   LayoutDashboard,
+  Inbox,
   Mail,
   Megaphone,
   Radio,
@@ -50,6 +51,7 @@ export const navigation: NavItem[] = [
     label: "Sources",
     icon: Workflow,
     children: [
+      { label: "Mailbox Ingest", to: "/sources/ingest", icon: Inbox },
       { label: "Email Sync", to: "/sources/email", icon: Mail },
       { label: "Apollo", to: "/sources/apollo", icon: Database },
       { label: "Imports", to: "/sources/imports", icon: Workflow },

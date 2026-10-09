@@ -9,6 +9,7 @@ import { Segments } from "./segments/Segments";
 import { EmailSync } from "./sources/EmailSync";
 import { Apollo } from "./sources/Apollo";
 import { Imports } from "./sources/Imports";
+import { Ingest } from "./sources/Ingest";
 import { Campaigns } from "./campaigns/Campaigns";
 import { CampaignEditor } from "./campaigns/CampaignEditor";
 import { CampaignDetail } from "./campaigns/CampaignDetail";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: "sources/email", element: <EmailSync /> },
       { path: "sources/apollo", element: <Apollo /> },
       { path: "sources/imports", element: <Imports /> },
+      { path: "sources/ingest", element: <Ingest /> },
 
       { path: "campaigns", element: <Campaigns /> },
       { path: "campaigns/new", element: <CampaignEditor /> },
