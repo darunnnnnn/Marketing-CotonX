@@ -7,6 +7,8 @@
  */
 
 import * as seed from "./seed.ts";
+import { supabaseConfigured } from "../supabase.ts";
+import { supabaseRepo } from "./supabaseRepository.ts";
 import { HUMAN_OWNED } from "./types.ts";
 import type {
   Campaign,
@@ -227,4 +229,11 @@ export const memoryRepo: Repository = {
   },
 };
 
-export const repo: Repository = memoryRepo;
+/**
+ * Which store the app reads from.
+ *
+ * With a project configured, everything goes to Postgres. Without one the app
+ * still runs on seed data, so the UI can be developed and demonstrated with no
+ * backend at all. The screens cannot tell the difference.
+ */
+export const repo: Repository = supabaseConfigured ? supabaseRepo : memoryRepo;

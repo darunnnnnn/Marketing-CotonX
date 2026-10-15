@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import { ChevronDown, LogOut } from "lucide-react";
 import { isGroup, navigation } from "./navigation";
+import { useAuth } from "../../lib/auth/useAuth";
 import type { NavLeaf } from "./navigation";
 import "./sidebar.css";
 
@@ -31,6 +32,7 @@ function Leaf({ item, nested }: { item: NavLeaf; nested?: boolean }) {
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const { session, profile, signOut, configured } = useAuth();
   const [openGroups, setOpenGroups] = useState<string[]>(() =>
     navigation
       .filter(isGroup)
@@ -92,13 +94,19 @@ export function Sidebar() {
 
       <div className="sidebar__footer">
         <div className="sidebar__user">
-          <span className="sidebar__avatar">C</span>
+          <span className="sidebar__avatar">
+            {(profile?.email ?? session?.user.email ?? "C")[0].toUpperCase()}
+          </span>
           <div className="sidebar__user-meta">
-            <div className="sidebar__user-name">marketing@cotonex.test</div>
-            <div className="sidebar__user-role">Marketing</div>
+            <div className="sidebar__user-name">
+              {profile?.email ?? session?.user.email ?? "Seed data (no project)"}
+            </div>
+            <div className="sidebar__user-role">
+              {configured ? (profile?.role ?? "no profile") : "offline"}
+            </div>
           </div>
         </div>
-        <button type="button" className="sidebar__signout">
+        <button type="button" className="sidebar__signout" onClick={() => void signOut()}>
           <span className="sidebar__icon">
             <LogOut size={18} strokeWidth={1.75} aria-hidden />
           </span>

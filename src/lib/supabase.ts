@@ -1,14 +1,31 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./domain/database.types";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!url || !anonKey) {
-  /* Phase 0 runs without a Supabase project; fail loudly once the app starts
-     reading data rather than silently returning empty result sets. */
+/** False when no project is configured, so the app can fall back to seed data. */
+export const supabaseConfigured = Boolean(url && anonKey);
+
+if (!supabaseConfigured) {
   console.warn(
-    "Supabase env vars are not set. Copy .env.example to .env.local and fill in the project URL and anon key.",
+    "Supabase is not configured. Copy .env.example to .env.local and fill in the project URL and key. " +
+      "The app will run on in-memory seed data until then.",
   );
 }
 
-export const supabase = createClient(url ?? "http://localhost:54321", anonKey ?? "anon-key-not-set");
+export const supabase = createClient<Database>(
+  url ?? "http://localhost:54321",
+  anonKey ?? "anon-key-not-set",
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  },
+);
+
+export type Tables = Database["public"]["Tables"];
+export type Row<T extends keyof Tables> = Tables[T]["Row"];
+export type Insert<T extends keyof Tables> = Tables[T]["Insert"];

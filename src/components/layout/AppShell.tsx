@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { AskFab } from "./AskFab";
 import { navigation, isGroup } from "./navigation";
+import { Guard } from "../../routes/Guard";
 import "./app-shell.css";
 
 function titleFor(pathname: string): string {
@@ -21,6 +22,7 @@ export function AppShell() {
   const { pathname } = useLocation();
 
   return (
+    <Guard>
     <div className="app-shell">
       <Sidebar />
       <div className="app-shell__main">
@@ -31,5 +33,6 @@ export function AppShell() {
       </div>
       <AskFab />
     </div>
+    </Guard>
   );
 }
