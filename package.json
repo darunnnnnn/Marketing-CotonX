@@ -22,7 +22,8 @@
     "db:pull": "supabase db pull",
     "db:diff": "supabase db diff",
     "db:status": "supabase migration list",
-    "db:types": "supabase gen types typescript --local > src/lib/domain/database.types.ts"
+    "db:types": "supabase gen types typescript --local > src/lib/domain/database.types.ts",
+    "db:setup": "bash scripts/setup-project.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
