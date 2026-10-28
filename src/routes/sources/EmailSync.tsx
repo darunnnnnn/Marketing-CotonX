@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Inbox, Play, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, Clock, Inbox, Play, Plus, RefreshCw, Trash2, Zap } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -41,6 +41,45 @@ type SyncRun = {
   error: string | null;
 };
 
+type ScheduleRow = {
+  name: string;
+  schedule: string;
+  active: boolean;
+};
+
+/**
+ * sync_schedule is a view, and the generated types only cover tables. Narrowed
+ * here rather than loosening the client, so every other query stays checked.
+ */
+async function readSchedule(): Promise<ScheduleRow[]> {
+  const query = supabase as unknown as {
+    from: (view: string) => {
+      select: (columns: string) => PromiseLike<{ data: ScheduleRow[] | null }>;
+    };
+  };
+  const { data } = await query.from("sync_schedule").select("*");
+  return data ?? [];
+}
+
+/** Same reason as readSchedule: the function postdates the generated types. */
+async function dispatchSync(): Promise<{ error?: string }> {
+  const client = supabase as unknown as {
+    rpc: (
+      name: string,
+      args: Record<string, unknown>,
+    ) => PromiseLike<{ error: { message: string } | null }>;
+  };
+  const { error } = await client.rpc("dispatch_gmail_sync", { sync_mode: "incremental" });
+  return error ? { error: error.message } : {};
+}
+
+/** Turns the cron expressions this project uses into plain English. */
+const SCHEDULE_LABELS: Record<string, string> = {
+  "gmail-sync-hourly": "Every hour",
+  "gmail-sync-weekly-sweep": "Sundays, as a repair sweep",
+  "release-stuck-mailboxes": "Every 20 minutes",
+};
+
 const STATUS_TONE: Record<Mailbox["status"], Tone | "neutral"> = {
   idle: "green",
   running: "blue",
@@ -53,6 +92,7 @@ const configured = Boolean(import.meta.env.VITE_SUPABASE_URL);
 export function EmailSync() {
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [runs, setRuns] = useState<SyncRun[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleRow[]>([]);
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
@@ -62,13 +102,16 @@ export function EmailSync() {
 
   const load = useCallback(async () => {
     if (!configured) return;
-    const [boxes, history] = await Promise.all([
+    const [boxes, history, jobs] = await Promise.all([
       supabase.from("mailboxes").select("*").order("address"),
       supabase.from("mailbox_sync_runs").select("*").order("started_at", { ascending: false }).limit(10),
+      /* Absent on a project without the scheduling migration; not an error. */
+      readSchedule(),
     ]);
     if (boxes.error) setProblem(boxes.error.message);
     setMailboxes((boxes.data as Mailbox[]) ?? []);
     setRuns((history.data as SyncRun[]) ?? []);
+    setSchedule(jobs);
     setLoaded(true);
   }, []);
 
@@ -97,6 +140,17 @@ export function EmailSync() {
 
   const removeMailbox = async (id: string) => {
     await supabase.from("mailboxes").delete().eq("id", id);
+    await load();
+  };
+
+  /* Same dispatcher the hourly schedule calls, so the manual button and the
+     automatic run cannot drift apart. */
+  const syncAllNow = async () => {
+    setBusy("all");
+    setProblem(null);
+    const { error } = await dispatchSync();
+    if (error) setProblem(error);
+    setBusy(null);
     await load();
   };
 
@@ -149,6 +203,48 @@ export function EmailSync() {
           <span>{problem}</span>
         </div>
       )}
+
+      <Card
+        title="Automatic sync"
+        action={
+          <Badge tone={schedule.some((job) => job.active) ? "green" : "amber"}>
+            {schedule.some((job) => job.active) ? "scheduled" : "not scheduled"}
+          </Badge>
+        }
+      >
+        {schedule.length === 0 ? (
+          <p className="table__sub">
+            No schedule found. Apply the latest migration, then store the two
+            secrets the dispatcher needs (see Setup below).
+          </p>
+        ) : (
+          <>
+            {schedule.map((job) => (
+              <div className="kv" key={job.name}>
+                <span className="kv__k">
+                  <Clock size={14} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+                  {SCHEDULE_LABELS[job.name] ?? job.name}
+                  <span style={{ color: "var(--c-text-muted)" }}> — {job.schedule}</span>
+                </span>
+                <span className="kv__v">
+                  <Badge tone={job.active ? "green" : "neutral"}>{job.active ? "on" : "paused"}</Badge>
+                </span>
+              </div>
+            ))}
+            <div style={{ marginTop: "var(--s-4)" }}>
+              <Button variant="primary" onClick={() => void syncAllNow()} disabled={busy === "all"}>
+                <Zap size={16} strokeWidth={2} />
+                {busy === "all" ? "Dispatching…" : "Sync every mailbox now"}
+              </Button>
+            </div>
+            <p className="table__sub" style={{ marginTop: "var(--s-3)" }}>
+              Each mailbox is dispatched as its own request, so one failing
+              mailbox cannot stop the others and ten of them cannot add up to a
+              timeout. A mailbox mid-sync is skipped rather than started twice.
+            </p>
+          </>
+        )}
+      </Card>
 
       <Card title="Mailboxes">
         <div style={{ display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
@@ -329,14 +425,32 @@ export function EmailSync() {
             <code>https://www.googleapis.com/auth/gmail.readonly</code> and nothing else.
           </li>
           <li>
-            Put the service account JSON key into the Edge Function secrets as{" "}
+            Put the service account JSON into the Edge Function secrets as{" "}
             <code>GOOGLE_SERVICE_ACCOUNT_KEY</code>.
           </li>
-          <li>Register one mailbox above and press <strong>Dry run</strong>.</li>
+          <li>
+            Give the scheduler what it needs, in the SQL editor:
+            <pre
+              style={{
+                marginTop: "var(--s-2)",
+                padding: "var(--s-3)",
+                background: "var(--c-surface-sunken)",
+                borderRadius: "var(--r-sm)",
+                fontSize: "var(--fs-xs)",
+                overflowX: "auto",
+              }}
+            >
+{`select set_sync_secret('project_url', 'https://<ref>.supabase.co');
+select set_sync_secret('service_role_key', '<service role key>');`}
+            </pre>
+          </li>
+          <li>Register the mailboxes above, then press <strong>Dry run</strong> on one.</li>
           <li>
             A dry run classifies without writing anything, so it is the safe way
-            to confirm delegation works and see what the classifier makes of
-            real mail before any of it lands in the database.
+            to confirm delegation works before any mail lands in the database.
+          </li>
+          <li>
+            Once a backfill has run, the hourly schedule takes over on its own.
           </li>
         </ol>
       </Card>
